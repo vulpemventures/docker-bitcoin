@@ -1,15 +1,16 @@
 # Docker bitcoin
 
-Dockerfile of the public image [vulpemventures/bitcoin:latest]()
+Dockerfile of the public image [ghcr.io/vulpemventures/bitcoin:latest](https://github.com/orgs/vulpemventures/packages/container/package/bitcoin)
+
 
 Pull the image:
 
 ```bash
-$ docker pull vulpemventures/bitcoin
+$ docker pull ghcr.io/vulpemventures/bitcoin:latest
 ```
 
-Run the container:
+Run the image:
 
 ```bash
-$ docker run -p 19001:19001 -v path/to/bitcoin.conf:/config -d vulpemventures/bitcoin
+$ docker run -v path/to/bitcoin.conf:/home/bitcoin/.bitcoin -d ghcr.io/vulpemventures/bitcoin:latest
 ```
