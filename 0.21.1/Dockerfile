@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y wget
 
 RUN wget -qO- https://bitcoincore.org/bin/bitcoin-core-$VERSION/bitcoin-$VERSION-x86_64-linux-gnu.tar.gz | tar -xvz
 
+RUN mv /bitcoin-$VERSION/bin/bitcoind /
+RUN mv /bitcoin-$VERSION/bin/bitcoin-cli /
 
 FROM debian:stable-slim
 
