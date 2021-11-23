@@ -1,13 +1,14 @@
-FROM debian:stable as builder
+FROM debian:stable-slim as builder
 
 # VERSION of BItcoin Core to be build
 ARG VERSION=22.0
 
 RUN apt-get update && apt-get install -y \
-  wget curl build-essential \ 
-  libtool autotools-dev \ 
+  build-essential \ 
   automake pkg-config  \
-  bsdmainutils  python3 \ 
+  wget curl libzmq3-dev \
+  libtool autotools-dev \ 
+  bsdmainutils python3 \ 
   libsqlite3-dev libdb-dev \
   libdb++-dev libevent-dev \ 
   libboost-dev libboost-system-dev \
@@ -17,7 +18,7 @@ RUN wget -qO- https://bitcoincore.org/bin/bitcoin-core-$VERSION/bitcoin-$VERSION
 
 WORKDIR /bitcoin-$VERSION
 
-RUN  ./autogen.sh
+RUN cd ./depends && make NO_QT=1 NO_UPNP=1 && cd .. && ./autogen.sh
 
 RUN ./configure \
   CXXFLAGS="-O2" \
@@ -30,6 +31,7 @@ RUN ./configure \
   --without-gui \
   --without-libs \
   --with-utils \
+  --with-zmq \
   --with-sqlite=yes \
   --without-miniupnpc \
   --with-incompatible-bdb
@@ -41,13 +43,16 @@ RUN make install
 RUN mv ./src/bitcoind /bitcoind && \
   mv ./src/bitcoin-cli /bitcoin-cli
 
-FROM debian:buster-slim
+FROM debian:stable-slim
 
-RUN apt-get update && apt-get install -y libboost-filesystem-dev \
+RUN apt-get update && apt-get install -y \
+  libboost-system-dev \
+  libboost-filesystem-dev \
   libboost-thread-dev \
   libevent-dev \
   libsodium-dev \
   libdb-dev \
+  libdb++-dev \
   libzmq3-dev \
   libsqlite3-dev 
 

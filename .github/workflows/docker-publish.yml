@@ -40,4 +40,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build image
-        run: docker buildx build --push --file ./$VERSION/Dockerfile --tag ghcr.io/vulpemventures/$IMAGE_NAME:latest --tag ghcr.io/vulpemventures/$IMAGE_NAME:$VERSION --platform linux/arm64,linux/amd64 .
+        run:  >-
+          docker buildx build --push 
+          --file ./$VERSION/Dockerfile 
+          --tag ghcr.io/vulpemventures/$IMAGE_NAME:latest 
+          --tag ghcr.io/vulpemventures/$IMAGE_NAME:$VERSION 
+          --platform linux/arm64,linux/amd64 .
