@@ -65,5 +65,6 @@ COPY --from=builder /bitcoin-cli /usr/local/bin/bitcoin-cli
 
 # Prevents `VOLUME $HOME/.bitcoin/` being created as owned by `root`
 RUN mkdir -p "$HOME/.bitcoin/"
+COPY bitcoin.conf "$HOME/bitcoin.conf"
 
 ENTRYPOINT [ "bitcoind" ]
