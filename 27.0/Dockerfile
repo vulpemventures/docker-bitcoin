@@ -43,29 +43,15 @@ FROM debian:stable-slim
 
 ENV DEBIAN_FRONTEND=non-interactive
 
-RUN useradd -ms /bin/bash bitcoin
-
-# Switch to root user
-USER root
-
 # Only install what we need at runtime
 RUN apt-get update && apt-get install -y \
-  libminiupnpc-dev libnatpmp-dev libevent-dev libzmq3-dev libsqlite3-dev
-
-# Switch back to bitcoin user
-USER bitcoin
-
-WORKDIR /home/bitcoin
+    libminiupnpc-dev libnatpmp-dev libevent-dev libzmq3-dev libsqlite3-dev
 
 COPY --from=builder /bitcoin/src/bitcoind /usr/local/bin/
 COPY --from=builder /bitcoin/src/bitcoin-cli /usr/local/bin/
 
-EXPOSE 18443 18444
+COPY bitcoin.conf /root/.bitcoin/bitcoin.conf
 
-# Prevents `VOLUME $HOME/.bitcoin/` being created as owned by `root`
-RUN mkdir -p "$HOME/.bitcoin/"
-COPY bitcoin.conf "$HOME/bitcoin.conf"
+VOLUME /root/bitcoin/.bitcoin
 
-VOLUME /home/bitcoin/.bitcoin
-
-ENTRYPOINT ["bitcoind", "-printtoconsole"]
+CMD ["bitcoind", "-printtoconsole"]
