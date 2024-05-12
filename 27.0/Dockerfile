@@ -50,8 +50,6 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /bitcoin/src/bitcoind /usr/local/bin/
 COPY --from=builder /bitcoin/src/bitcoin-cli /usr/local/bin/
 
-COPY bitcoin.conf /root/.bitcoin/bitcoin.conf
-
 VOLUME /root/bitcoin/.bitcoin
 
 CMD ["bitcoind", "-printtoconsole"]
