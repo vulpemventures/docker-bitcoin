@@ -9,7 +9,7 @@ on:
 env:
   # TODO: Change variable to your image's name.
   IMAGE_NAME: bitcoin
-  VERSION: 27.0
+  VERSION: "27.0"
 
 jobs:
   # Push image to GitHub Packages.
@@ -42,7 +42,7 @@ jobs:
       - name: Build image
         run:  >-
           docker buildx build --push 
-          --file ./$VERSION/Dockerfile 
+          --file "$VERSION/Dockerfile"
           --tag ghcr.io/vulpemventures/$IMAGE_NAME:latest 
           --tag ghcr.io/vulpemventures/$IMAGE_NAME:$VERSION 
           --platform linux/arm64,linux/amd64 .
