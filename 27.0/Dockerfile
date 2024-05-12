@@ -1,25 +1,18 @@
-FROM debian:stable-slim as builder
+FROM ubuntu:20.04 AS builder
 
-# VERSION of BItcoin Core to be build
-ARG VERSION=27.0
+ENV DEBIAN_FRONTEND=non-interactive
 
 RUN apt-get update && apt-get install -y \
-  build-essential \ 
-  automake pkg-config  \
-  wget curl libzmq3-dev \
-  libtool autotools-dev \ 
-  bsdmainutils python3 \ 
-  libsqlite3-dev libdb-dev \
-  libdb++-dev libevent-dev \ 
-  libboost-dev libboost-system-dev \
-  libboost-filesystem-dev libboost-test-dev
+    automake autotools-dev bsdmainutils build-essential ccache git libboost-dev \
+    libboost-filesystem-dev libboost-system-dev libboost-test-dev libevent-dev \
+    libminiupnpc-dev libnatpmp-dev libsqlite3-dev libtool libzmq3-dev pkg-config \
+    python3 systemtap-sdt-dev
 
-RUN wget -qO- https://bitcoincore.org/bin/bitcoin-core-$VERSION/bitcoin-$VERSION.tar.gz | tar -xvz
+RUN git clone https://github.com/bitcoin/bitcoin.git /bitcoin
 
-WORKDIR /bitcoin-$VERSION
+WORKDIR /bitcoin
 
-RUN cd ./depends && make NO_QT=1 NO_UPNP=1 && cd .. && ./autogen.sh
-
+RUN ./autogen.sh
 RUN ./configure \
   CXXFLAGS="-O2" \
   --disable-man \
@@ -35,36 +28,30 @@ RUN ./configure \
   --with-sqlite=yes \
   --without-miniupnpc \
   --with-incompatible-bdb
-
 RUN make clean
-RUN make -j$(( $(nproc) + 1 )) check
-RUN make install
+RUN make -j$(nproc)
 
-RUN mv ./src/bitcoind /bitcoind && \
-  mv ./src/bitcoin-cli /bitcoin-cli
+FROM ubuntu:20.04
 
-FROM debian:stable-slim
-
-RUN apt-get update && apt-get install -y \
-  libboost-system-dev \
-  libboost-filesystem-dev \
-  libboost-thread-dev \
-  libevent-dev \
-  libsodium-dev \
-  libdb-dev \
-  libdb++-dev \
-  libzmq3-dev \
-  libsqlite3-dev 
+ENV DEBIAN_FRONTEND=non-interactive
 
 RUN useradd -ms /bin/bash bitcoin
 USER bitcoin
+WORKDIR /home/bitcoin
 
+# Only install what we need at runtime
+RUN apt-get update && apt-get install -y \
+    libminiupnpc-dev libnatpmp-dev libevent-dev libzmq3-dev libsqlite3-dev
 
-COPY --from=builder /bitcoind /usr/local/bin/bitcoind
-COPY --from=builder /bitcoin-cli /usr/local/bin/bitcoin-cli
+COPY --from=builder /bitcoin/src/bitcoind /usr/local/bin/
+COPY --from=builder /bitcoin/src/bitcoin-cli /usr/local/bin/
+
+EXPOSE 18443 18444
 
 # Prevents `VOLUME $HOME/.bitcoin/` being created as owned by `root`
 RUN mkdir -p "$HOME/.bitcoin/"
 COPY bitcoin.conf "$HOME/bitcoin.conf"
 
-ENTRYPOINT [ "bitcoind" ]
+VOLUME /home/bitcoin/.bitcoin
+
+ENTRYPOINT ["bitcoind", "-printtoconsole"]
